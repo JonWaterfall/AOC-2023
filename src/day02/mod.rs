@@ -24,8 +24,8 @@ pub fn day02() {
 
     println!("In the bag, there is a total of {} red cubes, {} green cubes, and {} blue cubes", first_set_of_cubes.red_cubes, first_set_of_cubes.green_cubes, first_set_of_cubes.blue_cubes);
 
-    let invalid_games = read_input_file_and_solve_01(input_file, first_set_of_cubes);
-    println!("Valid game sum: {}", invalid_games);
+    let valid_games = read_input_file_and_solve_01(input_file, first_set_of_cubes);
+    println!("Valid game sum: {}", valid_games);
 }
 
 
