@@ -1,7 +1,20 @@
-
-// cube set: 12 red cubes, 13 green cubes, and 14 blue cubes
-// determine legal/possible games
-// sum the ID numbers 
+/* 
+ * cube set: 12 red cubes, 13 green cubes, and 14 blue cubes
+ * determine legal/possible games
+ * sum the ID numbers
+ * 
+ * Part 2 asks to considder the HIGHEST number of cubes that was used in each game series
+ * Take the product of each cube type:
+ * Game 1: 4 red x 2 green x 6 blue = 48
+ * Game 2: 1 red x 3 green x 4 blue = 12
+ * Game 3: 20 red x 13 green x 6 blue = 1560
+ * 630, 36
+ * Sum them all up: = 2286
+ * 
+ * Self reflection 1: I probably could have used a single regex query for the second part
+ * something like r"(?<red>\d+(?=\sred))|(?<green>\d+(?=\sgreen))|(?<blue>\d+(?=\sblue))"
+ * but I'm not confident enough to say if that would affect the time complexity
+ */
 
 use std::fs::File;
 use std::io::Read;
@@ -9,7 +22,7 @@ use std::path::Path;
 use std::str::FromStr;
 use regex::Regex;
 
-
+#[derive(Copy, Clone)]
 struct CubeCollection {
     red_cubes  :i32,
     green_cubes:i32,
@@ -26,6 +39,9 @@ pub fn day02() {
 
     let valid_games = read_input_file_and_solve_01(input_file, first_set_of_cubes);
     println!("Valid game sum: {}", valid_games);
+
+    let power_sum = read_input_file_and_solve_02(input_file);
+    println!("Part 2 solution: {}", power_sum);
 }
 
 
@@ -111,6 +127,65 @@ fn read_input_file_and_solve_01(input_filepath: &Path, max_cubes: CubeCollection
 }
 
 
+// will return sum of product of cubes used in each game
+fn read_input_file_and_solve_02(input_filepath: &Path) -> u128 {
+    let mut sum_products: u128 = 0;
+    let red_boxes_regex = Regex::new(r"(?<red>\d+) red").unwrap();
+    let blue_boxes_regex = Regex::new(r"(?<blue>\d+) blue").unwrap();
+    let green_boxes_regex = Regex::new(r"(?<green>\d+) green").unwrap();
+
+    // read the input file
+    let mut file: File = match File::open(&input_filepath) {
+        Err(why) => panic!("Could not open day06 input file: {}", why),
+        Ok(file) => file,
+    };
+
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("Could not read file to string : {}", why),
+        Ok(_) => ()
+    }
+
+    for line in s.lines() {
+        let red_boxes_cap = red_boxes_regex.captures_iter(line);
+        let green_boxes_cap = green_boxes_regex.captures_iter(line);
+        let blue_boxes_cap = blue_boxes_regex.captures_iter(line);
+        // if red_boxes_cap.is_none() || green_boxes_cap.is_none() || blue_boxes_cap.is_none() {
+        //     panic!("Something went wrong with the regex color captures. Line is: {}", line);
+        // }
+
+        // assuming that 1 will always be the lowest number.
+        let mut most_red:u32 = 1;
+        let mut most_blue:u32 = 1;
+        let mut most_green:u32 = 1;
+
+        for red_cap in red_boxes_cap {
+            let unwrapped_num = u32::from_str(red_cap.name("red").unwrap().as_str()).unwrap();
+            if unwrapped_num > most_red {
+                most_red = unwrapped_num;
+            }
+        }
+        for blue_cap in blue_boxes_cap {
+            let unwrapped_num = u32::from_str(blue_cap.name("blue").unwrap().as_str()).unwrap();
+            if unwrapped_num > most_blue {
+                most_blue = unwrapped_num;
+            }
+        }
+        for green_cap in green_boxes_cap {
+            let unwrapped_num = u32::from_str(green_cap.name("green").unwrap().as_str()).unwrap();
+            if unwrapped_num > most_green {
+                most_green = unwrapped_num;
+            }
+        }
+
+        let product_of_cubes = most_red * most_green * most_blue;
+        //println!("product is: {}", product_of_cubes);
+        sum_products += u128::from(product_of_cubes);
+    }
+
+
+    return sum_products;
+}
 
 
 
@@ -133,4 +208,10 @@ mod tests {
         assert_eq!(read_input_file_and_solve_01(example_input_file, first_set_of_cubes), 8);
     }
 
+    #[test]
+    fn test_read_input_file_and_solve_02() {
+        let example_input_file = Path::new("src/inputs/day02exampleinput.txt");
+
+        assert_eq!(read_input_file_and_solve_02(example_input_file), 2286);
+    }
 }
