@@ -19,10 +19,11 @@
  * For this exercise I will assume whatever is not defined as a "word character"  by Regex to be good enough for a first pass.
  * 
  * !!!! Reflection 2: !!!!
- * Apparantly, the Regex API for Rust does NOT currently implement a method for getting the index of a match. 
+ * Apparantly, the Regex API for Rust does NOT currently implement a method for getting the character index of a match. 
+ * It's not by character count, but by the match count or byte offset from haystack start.
  * Rust bros, I'm sorry but C# still got a leg over us here.
- * "doing it the hard way" it is then
- * 
+ * So what we then do is .enumerate() on captures_iter then check if 1.capture.get(0) is a number or a symbol. 
+ * This is becoming a very ghetto linear search.
  */
 
 use std::{path::Path, vec};
@@ -45,33 +46,38 @@ pub fn day03() {
 }
 
 fn solve_01(input_string: String) -> u32 {
+    solve_01_regex(input_string)
 }
 
 
-/*  // discarded for missing features in the regex api
-fn solve_regex_descarded(input_string: String) -> u32 {
+fn solve_01_regex(input_string: String) -> u32 {
     // assume all lines are the same size for simplicity
     let line_len = input_string.lines().next().unwrap().len();
 
     // will match anything that is NOT a ".", number, word character, OR invisible character(incl newline).
-    let sym_regex = Regex::new(r"(?<symbol>[^\.\w\s])").unwrap();
+    let sym_regex = Regex::new(r"(?<num>[\d])|(?<symbol>[^\.\w\s])|(?<dot>[\.])|(?<nl>[\n])").unwrap();
     let sym_list = sym_regex.captures_iter(&input_string); /* {
         None => panic!("Failed to find symbols.", ),
         Some(thing) => thing,
     };*/
 
-    //print!("{}", sym_list.get(i));
-    // how to find "up" from a given position £
+    println!("Line len is: {}", line_len);
+    // how to find "up" from a given position ?
     // idea: find length of previous line. Then add length between £ and prevous lineshift to index of lineshift before that again. (assuming we don't step out of bounds)
-    for sym in sym_list {
-        print!("{}", sym.iter().enumerate().skip(1).find(|t| t.1.is_some()).map(|t| t.0).unwrap_or(0));
-        //let x = sym["symbol"];
+    for sym in sym_list.enumerate() {
+        print!("{}:", sym.0);
+        print!("{} ", sym.1.get(0).unwrap().as_str());
+        print!("{} ", sym.1.get(0).unwrap().start()); //byte offset of match
+        if sym.1.get(0).unwrap().as_str() == "\n" {
+            println!()
+        }
+        //let x = sym.get(0);
     }
     //print!("{}", input_string);
     return 5; //temp while I write function
     // a temp that is now permanent because I will now drop Regex due to a missing critical feature ( getting the index of a match )
 }
-*/
+
 
 
 
