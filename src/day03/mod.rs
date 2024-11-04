@@ -52,30 +52,31 @@ fn solve_01(input_string: String) -> u32 {
 
 fn solve_01_regex(input_string: String) -> u32 {
     // assume all lines are the same size for simplicity
-    let line_len = input_string.lines().next().unwrap().len();
+    let line_len: i32 = input_string.lines().next().unwrap().len().try_into().unwrap();
 
-    // will match anything that is NOT a ".", number, word character, OR invisible character(incl newline).
-    let sym_regex = Regex::new(r"(?<num>[\d])|(?<symbol>[^\.\w\s])|(?<dot>[\.])|(?<nl>[\n])").unwrap();
-    let sym_list = sym_regex.captures_iter(&input_string); /* {
-        None => panic!("Failed to find symbols.", ),
-        Some(thing) => thing,
-    };*/
+    // will match with ".", single number, and any non-word symbol(but not ".").
+    let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])").unwrap();
+
+    
 
     println!("Line len is: {}", line_len);
+
     // how to find "up" from a given position ?
     // idea: find length of previous line. Then add length between £ and prevous lineshift to index of lineshift before that again. (assuming we don't step out of bounds)
-    for sym in sym_list.enumerate() {
-        print!("{}:", sym.0);
-        print!("{} ", sym.1.get(0).unwrap().as_str());
-        print!("{} ", sym.1.get(0).unwrap().start()); //byte offset of match
-        if sym.1.get(0).unwrap().as_str() == "\n" {
-            println!()
+    let mut line_num: i32 = 0;
+    for line in input_string.lines(){
+        for sym in sym_regex.captures_iter(line).enumerate() {
+            print!("{}:", sym.0);
+            //print!("{}:", sym.1.get(0).unwrap().start()); //byte offset of match. A byte offset is NOT synonymus with character offset in UTF-8
+            print!("{}   ", sym.1.get(0).unwrap().as_str());
+            //let x = sym.get(0);
         }
-        //let x = sym.get(0);
+        println!("");
+        line_num += line_num;
     }
-    //print!("{}", input_string);
+    
     return 5; //temp while I write function
-    // a temp that is now permanent because I will now drop Regex due to a missing critical feature ( getting the index of a match )
+    
 }
 
 
