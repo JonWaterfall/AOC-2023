@@ -55,25 +55,51 @@ fn solve_01_regex(input_string: String) -> u32 {
     let line_len: i32 = input_string.lines().next().unwrap().len().try_into().unwrap();
 
     // will match with ".", single number, and any non-word symbol(but not ".").
-    let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])").unwrap();
+    let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])|(?<lineend>[\n])").unwrap();
 
-    
-
-    println!("Line len is: {}", line_len);
-
-    // how to find "up" from a given position ?
-    // idea: find length of previous line. Then add length between £ and prevous lineshift to index of lineshift before that again. (assuming we don't step out of bounds)
+    //println!("Line len is: {}", line_len);
     let mut line_num: i32 = 0;
+    // Pair denotes Location, value
+    let mut num_col: Vec<(std::ops::Range<i32>, i32)> = Vec::new();
+    let mut sym_locations: Vec<i32> = Vec::new();
+
+
+    // Parse / data collection
     for line in input_string.lines(){
+        let mut num_flag: bool = false;
+        let mut num_buffer: String = String::new();
+
         for sym in sym_regex.captures_iter(line).enumerate() {
             print!("{}:", sym.0);
             //print!("{}:", sym.1.get(0).unwrap().start()); //byte offset of match. A byte offset is NOT synonymus with character offset in UTF-8
             print!("{}   ", sym.1.get(0).unwrap().as_str());
-            //let x = sym.get(0);
+            let option_num = sym.1.name("num");
+            if option_num.is_some() {
+                if num_flag == false {
+                    num_flag = true;
+                }
+                num_buffer.push(option_num.unwrap().as_str().parse().unwrap());
+            }
+            /*else*/ if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { // untested but pretty sure it works: what if the last character in the file is a number?
+                let num_range: std::ops::Range<i32> = (sym.0 - num_buffer.len()).try_into().unwrap()..(sym.0.try_into().unwrap());
+                let parsed_num: i32 = num_buffer.parse().unwrap();
+                num_col.push((num_range, parsed_num));
+                num_buffer.clear();
+                num_flag = false;
+            }
+            
+            let option_sym = sym.1.name("symbol");
+            //print!("{}", is_sym);
+
+
         }
         println!("");
         line_num += line_num;
     }
+
+
+    // how to find "up" from a given position ?
+    // idea: find length of previous line. Then add length between £ and prevous lineshift to index of lineshift before that again. (assuming we don't step out of bounds)
     
     return 5; //temp while I write function
     
