@@ -78,7 +78,7 @@ fn solve_01_regex(input_string: String) -> u32 {
                 if num_flag == false {
                     num_flag = true;
                 }
-                num_buffer.push(option_num.unwrap().as_str().parse().unwrap());
+                num_buffer.push_str(option_num.unwrap().as_str());
             }
             /*else*/ if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { 
                 // need to do some if elses for when the last character in the line is a number
