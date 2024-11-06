@@ -103,6 +103,9 @@ fn solve_01_regex(input_string: String) -> u32 {
             
             let option_sym = sym.1.name("symbol");
             //print!("{}", is_sym);
+            if option_sym.is_some() {
+                sym_locations.push(sym.0 as i32 + (line_num*10));
+            }
 
 
         }
@@ -111,6 +114,9 @@ fn solve_01_regex(input_string: String) -> u32 {
     }
     for number in num_col {
         println!("At loc {}..{} we found {}", number.0.start, number.0.end, number.1);
+    }
+    for symbol in sym_locations {
+        println!("At loc {} we found a symbol", symbol);
     }
 
 
