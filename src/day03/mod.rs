@@ -55,7 +55,7 @@ fn solve_01_regex(input_string: String) -> u32 {
     let line_len: i32 = input_string.lines().next().unwrap().len().try_into().unwrap();
 
     // will match with ".", single number, and any non-word symbol(but not ".").
-    let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])|(?<lineend>[\n])").unwrap();
+    let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])").unwrap();
 
     //println!("Line len is: {}", line_len);
     let mut line_num: i32 = 0;
@@ -70,9 +70,9 @@ fn solve_01_regex(input_string: String) -> u32 {
         let mut num_buffer: String = String::new();
 
         for sym in sym_regex.captures_iter(line).enumerate() {
-            print!("{}:", sym.0);
+            //print!("{}:", sym.0);
             //print!("{}:", sym.1.get(0).unwrap().start()); //byte offset of match. A byte offset is NOT synonymus with character offset in UTF-8
-            print!("{}   ", sym.1.get(0).unwrap().as_str());
+            //print!("{}   ", sym.1.get(0).unwrap().as_str());
             let option_num = sym.1.name("num");
             if option_num.is_some() {
                 if num_flag == false {
@@ -80,8 +80,21 @@ fn solve_01_regex(input_string: String) -> u32 {
                 }
                 num_buffer.push(option_num.unwrap().as_str().parse().unwrap());
             }
-            /*else*/ if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { // untested but pretty sure it works: what if the last character in the file is a number?
-                let num_range: std::ops::Range<i32> = (sym.0 - num_buffer.len()).try_into().unwrap()..(sym.0.try_into().unwrap());
+            /*else*/ if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { 
+                // need to do some if elses for when the last character in the line is a number
+                let low_range: i32 = if option_num.is_none() {
+                    (sym.0 - num_buffer.len()) as i32
+                }
+                else {
+                    (sym.0 - num_buffer.len()) as i32 + 1
+                }; 
+                let high_range: i32 = if option_num.is_none() {
+                    sym.0 as i32 -1
+                }
+                else {
+                    sym.0 as i32
+                }; 
+                let num_range: std::ops::Range<i32> = low_range+(line_num*10)..high_range+(line_num*10);
                 let parsed_num: i32 = num_buffer.parse().unwrap();
                 num_col.push((num_range, parsed_num));
                 num_buffer.clear();
@@ -93,8 +106,11 @@ fn solve_01_regex(input_string: String) -> u32 {
 
 
         }
-        println!("");
-        line_num += line_num;
+        //println!("");
+        line_num = line_num + 1;
+    }
+    for number in num_col {
+        println!("At loc {}..{} we found {}", number.0.start, number.0.end, number.1);
     }
 
 
