@@ -24,9 +24,11 @@
  * Rust bros, I'm sorry but C# still got a leg over us here.
  * So what we then do is .enumerate() on captures_iter then check if 1.capture.get(0) is a number or a symbol. 
  * This is becoming a very ghetto linear search.
+ * 
+ * reflection 3: ended up getting a number that's "too high" but my test passes. So I need to scout for an edge case in my input file
  */
 
-use std::{path::Path, vec};
+use std::path::Path;
 
 use regex::Regex;
 
@@ -36,7 +38,7 @@ mod utility;
 
 
 pub fn day03() {
-    let input_file = Path::new("src/inputs/day03exampleinput.txt");
+    let input_file = Path::new("src/inputs/day03input.txt");
     let file_content = match utility::read_input_file(input_file) {
         Err(why) => panic!("Could not open day06 input file: {}", why),
         Ok(file) => file,
@@ -53,6 +55,7 @@ fn solve_01(input_string: String) -> u32 {
 fn solve_01_regex(input_string: String) -> u32 {
     // assume all lines are the same size for simplicity
     let line_len: i32 = input_string.lines().next().unwrap().len().try_into().unwrap();
+    let line_count: i32 = input_string.lines().count() as i32;
 
     // will match with ".", single number, and any non-word symbol(but not ".").
     let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])").unwrap();
@@ -112,18 +115,54 @@ fn solve_01_regex(input_string: String) -> u32 {
         //println!("");
         line_num = line_num + 1;
     }
-    for number in num_col {
+    /*for number in num_col {
         println!("At loc {}..{} we found {}", number.0.start, number.0.end, number.1);
     }
     for symbol in sym_locations {
         println!("At loc {} we found a symbol", symbol);
+    }*/
+
+
+    // Itterate over our numbers and see if symbols are near them.
+    let mut answer: u32 = 0; 
+    'nums: for number in num_col {
+        let left_bound = if number.0.start % line_len == 0{
+            number.0.start
+        } else {
+            number.0.start -1
+        };
+        let right_bound = if number.0.end % line_len == line_len-1{
+            number.0.end
+        } else {
+            number.0.end +1
+        };
+        //println!("Left bound: {}, Right bound: {}", left_bound, right_bound);
+
+        if left_bound >= line_len {
+            for n in left_bound-line_len..=right_bound-line_len { // remember to use inclusive range
+                if sym_locations.contains(&n){
+                    answer += number.1.unsigned_abs(); // lazy casting. We are guaranteed to be positive anyway.
+                    //println!("num {} found near pos {}", number.1.unsigned_abs(), n);
+                    continue 'nums;
+                };
+            }
+        }
+        if (right_bound + line_len >= line_len * line_count) == false { // line_len * line_count is out of bounds by one
+            for n in left_bound+line_len..=right_bound+line_len {
+                if sym_locations.contains(&n){
+                    answer += number.1.unsigned_abs();
+                    //println!("num {} found near pos {}", number.1.unsigned_abs(), n);
+                    continue 'nums;
+                }
+            }
+        }
+        if sym_locations.contains(&left_bound) || sym_locations.contains(&right_bound) {
+            answer += number.1.unsigned_abs();
+            //println!("num {} found near pos {}", number.1.unsigned_abs(), left_bound);
+        }
     }
-
-
-    // how to find "up" from a given position ?
-    // idea: find length of previous line. Then add length between £ and prevous lineshift to index of lineshift before that again. (assuming we don't step out of bounds)
     
-    return 5; //temp while I write function
+    return answer; //temp while I write function
     
 }
 
