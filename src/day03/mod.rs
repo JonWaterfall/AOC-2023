@@ -97,7 +97,7 @@ fn solve_01_regex(input_string: String) -> u32 {
                 else {
                     sym.0 as i32
                 }; 
-                let num_range: std::ops::Range<i32> = low_range+(line_num*10)..high_range+(line_num*10);
+                let num_range: std::ops::Range<i32> = low_range+(line_num*line_len)..high_range+(line_num*line_len);
                 let parsed_num: i32 = num_buffer.parse().unwrap();
                 num_col.push((num_range, parsed_num));
                 num_buffer.clear();
@@ -107,7 +107,7 @@ fn solve_01_regex(input_string: String) -> u32 {
             let option_sym = sym.1.name("symbol");
             //print!("{}", is_sym);
             if option_sym.is_some() {
-                sym_locations.push(sym.0 as i32 + (line_num*10));
+                sym_locations.push(sym.0 as i32 + (line_num*line_len));
             }
 
 
