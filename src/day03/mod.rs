@@ -138,6 +138,7 @@ fn solve_01_regex(input_string: String) -> u32 {
         };
         //println!("Left bound: {}, Right bound: {}", left_bound, right_bound);
 
+        // look on line above
         if left_bound >= line_len {
             for n in left_bound-line_len..=right_bound-line_len { // remember to use inclusive range
                 if sym_locations.contains(&n){
@@ -147,6 +148,7 @@ fn solve_01_regex(input_string: String) -> u32 {
                 };
             }
         }
+        // look on line below
         if (right_bound + line_len >= line_len * line_count) == false { // line_len * line_count is out of bounds by one
             for n in left_bound+line_len..=right_bound+line_len {
                 if sym_locations.contains(&n){
