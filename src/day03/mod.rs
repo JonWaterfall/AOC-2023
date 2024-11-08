@@ -180,4 +180,11 @@ mod tests {
 
         assert_eq!(solve_01(utility::read_input_file(example_input_file).unwrap()), 4361);
     }
+
+    #[test]
+    fn test_read_input_file_and_solve_02() {
+        let example_input_file = Path::new("src/inputs/day03exampleinput.txt");
+
+        assert_eq!(solve_02(utility::read_input_file(example_input_file).unwrap()), 467835);
+    }
 }
