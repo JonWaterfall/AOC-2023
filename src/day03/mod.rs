@@ -60,67 +60,14 @@ fn solve_01_regex(input_string: String) -> u32 {
     // will match with ".", single number, and any non-word symbol(but not ".").
     let sym_regex = Regex::new(r"(?<dot>[\.])|(?<num>[\d])|(?<symbol>[^\.\w\s])").unwrap();
 
-    //println!("Line len is: {}", line_len);
-    let mut line_num: i32 = 0;
+
     // Pair denotes Location, value
     let mut num_col: Vec<(std::ops::Range<i32>, i32)> = Vec::new();
     let mut sym_locations: Vec<i32> = Vec::new();
 
 
     // Parse / data collection
-    for line in input_string.lines(){
-        let mut num_flag: bool = false;
-        let mut num_buffer: String = String::new();
-
-        for sym in sym_regex.captures_iter(line).enumerate() {
-            //print!("{}:", sym.0);
-            //print!("{}:", sym.1.get(0).unwrap().start()); //byte offset of match. A byte offset is NOT synonymus with character offset in UTF-8
-            //print!("{}   ", sym.1.get(0).unwrap().as_str());
-            let option_num = sym.1.name("num");
-            if option_num.is_some() {
-                if num_flag == false {
-                    num_flag = true;
-                }
-                num_buffer.push_str(option_num.unwrap().as_str());
-            }
-            /*else*/ if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { 
-                // need to do some if elses for when the last character in the line is a number
-                let low_range: i32 = if option_num.is_none() {
-                    (sym.0 - num_buffer.len()) as i32
-                }
-                else {
-                    (sym.0 - num_buffer.len()) as i32 + 1
-                }; 
-                let high_range: i32 = if option_num.is_none() {
-                    sym.0 as i32 -1
-                }
-                else {
-                    sym.0 as i32
-                }; 
-                let num_range: std::ops::Range<i32> = low_range+(line_num*line_len)..high_range+(line_num*line_len);
-                let parsed_num: i32 = num_buffer.parse().unwrap();
-                num_col.push((num_range, parsed_num));
-                num_buffer.clear();
-                num_flag = false;
-            }
-            
-            let option_sym = sym.1.name("symbol");
-            //print!("{}", is_sym);
-            if option_sym.is_some() {
-                sym_locations.push(sym.0 as i32 + (line_num*line_len));
-            }
-
-
-        }
-        //println!("");
-        line_num = line_num + 1;
-    }
-    /*for number in num_col {
-        println!("At loc {}..{} we found {}", number.0.start, number.0.end, number.1);
-    }
-    for symbol in sym_locations {
-        println!("At loc {} we found a symbol", symbol);
-    }*/
+    collect_symbols_and_numbers(input_string, sym_regex, line_len, &mut num_col, &mut sym_locations);
 
 
     // Itterate over our numbers and see if symbols are near them.
@@ -166,6 +113,58 @@ fn solve_01_regex(input_string: String) -> u32 {
     
     return answer; //temp while I write function
     
+}
+
+// Goes through each line of the input_string and scans with sym_regex. Numbers and symbols are collected and placed in num_col and sym_locations.
+// assumes regex to be formated to match with every character and use the naming groups "num" and "symbol" for numbers and symbols.
+fn collect_symbols_and_numbers(input_string: String, sym_regex: Regex, line_len: i32, num_col: &mut Vec<(std::ops::Range<i32>, i32)>, sym_locations: &mut Vec<i32>) {
+    let mut line_num: i32 = 0;
+    for line in input_string.lines(){
+        let mut num_flag: bool = false;
+        let mut num_buffer: String = String::new();
+
+        for sym in sym_regex.captures_iter(line).enumerate() {
+            // collect numbers into a buffer
+            let option_num = sym.1.name("num");
+            if option_num.is_some() {
+                if num_flag == false {
+                    num_flag = true;
+                }
+                num_buffer.push_str(option_num.unwrap().as_str());
+            }
+            // when to stop collecting numbers
+            if (option_num.is_none() || (sym.0+1) as i32 == line_len ) && num_flag { 
+                // need to do some if elses for when the last character in the line is a number
+                let low_range: i32 = if option_num.is_none() {
+                    (sym.0 - num_buffer.len()) as i32
+                    }
+                    else {
+                    (sym.0 - num_buffer.len()) as i32 + 1
+                }; 
+                let high_range: i32 = if option_num.is_none() {
+                    sym.0 as i32 -1
+                    }
+                    else {
+                    sym.0 as i32
+                }; 
+                let num_range: std::ops::Range<i32> = low_range+(line_num*line_len)..high_range+(line_num*line_len);
+                let parsed_num: i32 = num_buffer.parse().unwrap();
+
+                num_col.push((num_range, parsed_num));
+                num_buffer.clear();
+                num_flag = false;
+            }
+        
+            // We only need the location of the symbols
+            let option_sym = sym.1.name("symbol");
+            if option_sym.is_some() {
+                sym_locations.push(sym.0 as i32 + (line_num*line_len));
+            }
+
+        }
+        
+        line_num = line_num + 1;
+    }
 }
 
 
